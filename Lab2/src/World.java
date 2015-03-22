@@ -137,7 +137,7 @@ public class World {
 		String result = "";
 		for (int i = 0; i < table.size(); i++)
 			result += table.get(i) + "\n";
-		result += "Arm =" + inHand;
+		result += "Arm = " + inHand;
 		return result;
 	}
 	
@@ -147,10 +147,40 @@ public class World {
 		w.blocks = (HashSet<Block>) this.blocks.clone();
 		w.inHand = this.inHand;
 		w.table = new ArrayList<>();
-		for (int i = table.size() - 1; i >= 0; i++) {
+		for (int i = table.size() - 1; i >= 0; i--) {
 			w.table.add(0, (ArrayList<Block>)table.get(i).clone());
 		}
-		return null;
+		return w;
+	}
+	@Override
+	public boolean equals(Object other) {
+		World o = (World)other;
+		if ((inHand == null && o.inHand != null) ||
+			(inHand != null && o.inHand == null) ||	
+			(inHand != null && o.inHand != null && !inHand.equals(o.inHand)))
+			return false;
+		for (int i = 0; i < table.size(); i++) {
+			boolean found = false;
+			for (int j = 0; j < o.table.size(); j++) {
+				if (o.table.get(j).get(0).equals(table.get(i).get(0))) {
+					ArrayList<Block> first = table.get(i);
+					ArrayList<Block> second = o.table.get(j);
+					if (first.size() != second.size()) {
+						return false;
+					}
+					for (int k = 0; k < second.size(); k++) {
+						if (!first.get(k).equals(second.get(k))) {
+							return false;
+						}
+					}
+					found = true;
+					break;
+				}
+			}
+			if (!found)
+				return false;
+		}
 		
+		return true;
 	}
 }

@@ -14,4 +14,7 @@ public class PredicateAttribute {
 	
 	private Block innerBlock;
 	
+	public String toString() {
+		return innerBlock.toString();
+	}
 }

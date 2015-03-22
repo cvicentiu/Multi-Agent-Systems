@@ -3,13 +3,13 @@ import java.util.ArrayList;
 
 public class Action {
 	
-	public enum Type {
+	public static enum Type {
 		STACK, UNSTACK, PICKUP, PUTDOWN 
 	}
 	
 	public Action(Type t, Block... operators) {
 		Block b1 = null, b2 = null;
-		switch (type) {
+		switch (t) {
 		case STACK:
 		case UNSTACK:
 			if (operators.length != 2)
