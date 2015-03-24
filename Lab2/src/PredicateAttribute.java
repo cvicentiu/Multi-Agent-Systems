@@ -17,4 +17,8 @@ public class PredicateAttribute {
 	public String toString() {
 		return innerBlock.toString();
 	}
+	@Override
+	public boolean equals(Object o) {
+		return innerBlock.equals(((PredicateAttribute)o).innerBlock);
+	}
 }

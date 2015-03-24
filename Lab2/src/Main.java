@@ -1,5 +1,4 @@
-import java.util.ArrayList;
-
+import java.util.List;
 
 public class Main {
 	public static void main(String argv[]) {
@@ -14,45 +13,40 @@ public class Main {
 		w.addBlock(B, A);
 		w.addBlock(C, null);
 		w.addBlock(D, null);
-		/*
-			World clone = w.clone();
-			System.out.println(clone);
-			System.out.println(w.equals(clone));
-			w.pickup(D);
-			System.out.println(w.equals(clone));
-			System.out.println(w);
-			w.putdown(C);
-			System.out.println(w);
-			w.putdown(D);
-			System.out.println(w.equals(clone));
-			System.out.println(w);
-			w.pickup(C);
-			System.out.println(w);
-			w.putdown(C);
-			System.out.println(w);
-			w.unstack(B, A);
-			System.out.println(w);
-			w.unstack(A, B);
-			System.out.println(w);
-			w.stack(B, D);
-			System.out.println(w);
-		*/
-		PredicateAttribute pA = new PredicateAttribute(A);
-		PredicateAttribute pB = new PredicateAttribute(B);
-		PredicateAttribute pD = new PredicateAttribute(D);
-		PredicateAttribute pC = new PredicateAttribute(C);
-		ArrayList<Predicate> pList = new ArrayList<>();
-		pList.add(new Predicate(Predicate.Type.ON, pD, pB));
-		pList.add(new Predicate(Predicate.Type.ON, pB, pA));
-		pList.add(new Predicate(Predicate.Type.ON, pC, pD));
-		Plan p = Planner.findPlan(w, pList, new GoalEvaluator(w));
-		System.out.println(p.size());
-		System.out.println(w + "\n");
 		
-		for (int i = 0; i < p.size(); i++) {
-			Action a = p.get(i);
-			a.executeAction(w);
-			System.out.println(w + "\n");
+		World finalWorld = new World();
+		finalWorld.addBlock(D, null);
+		finalWorld.addBlock(A, D);
+		finalWorld.addBlock(C, A);
+		finalWorld.addBlock(B, C);
+		
+		System.out.println("Initial World");
+		System.out.println(w);
+		System.out.println();
+		System.out.println("Desired World");
+		System.out.println(finalWorld);
+		System.out.println();
+		
+		Agent a = new Agent(w);
+		a.setDesiredState(finalWorld);
+		a.setDesires(Agent.createDesiresBasedOnWorld(finalWorld));
+		System.out.println("Agent desires:");
+		System.out.println(a.desires);
+		System.out.println();
+		while (!a.areDesiresStatisfied()) {
+			System.out.println("Current State:");
+			System.out.println(a.currentState);
+			System.out.println("Current Plan:");
+			List<Predicate> unsatisfiedDesires = a.getUnsatisfiedDesires(); // Intentions
+			a.makePlan(unsatisfiedDesires);
+			System.out.println(a.currentPlan);
+			boolean execution = a.executePlan();
+			if (execution) {
+				System.out.println("Something went wrong with the plan.");
+				System.out.println(a.currentState);
+				break;
+			}
+
 		}
 	}
 	 

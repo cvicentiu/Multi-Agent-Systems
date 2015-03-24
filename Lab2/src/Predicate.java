@@ -53,13 +53,26 @@ public class Predicate {
 	
 	public String toString() {
 		String s = this.type + "";
-		if (attributes.length > 0)
+		if (attributes.length > 0) {
 			s += "(";
-		for (PredicateAttribute p : attributes)
-			s += p.getBlock() + ",";
-		s.subSequence(0, s.length() - 1);
-		if (attributes.length > 0)
+			for (PredicateAttribute p : attributes)
+				s += p.getBlock() + ",";
+			s = s.substring(0, s.length() - 1);
 			s += ")";
+		}
 		return s;
+	}
+	@Override
+	public boolean equals(Object other) {
+		Predicate p = (Predicate) other;
+		if (!p.type.equals(type))
+			return false;
+		if (!(p.attributes.length == attributes.length))
+			return false;
+		for (int i = 0; i < attributes.length; i++) {
+			if (!attributes[i].equals(p.attributes[i]))
+				return false;
+		}
+		return true;
 	}
 }

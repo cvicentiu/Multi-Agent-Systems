@@ -49,7 +49,7 @@ public class Planner {
 	 * @param g
 	 * @return The resulting plan to achieve the Predicate.
 	 */
-	public static Plan findPlan(World currentStatus, ArrayList<Predicate> toFulfill, GoalEvaluator g) {
+	public static Plan findPlan(World currentStatus, List<Predicate> toFulfill, GoalEvaluator g) {
 		Plan result = new Plan();
 		
 		PriorityQueue<State> open = new PriorityQueue<>();
