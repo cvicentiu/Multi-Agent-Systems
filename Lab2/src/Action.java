@@ -7,7 +7,10 @@ public class Action {
 		STACK, UNSTACK, PICKUP, PUTDOWN 
 	}
 	
-	public Action(Type t, Block... operators) {
+	public Action(Type t, int botNumber, Block... operators) {
+		this.botNumber = botNumber;
+		if (botNumber < 0)
+			throw new RuntimeException();
 		Block b1 = null, b2 = null;
 		switch (t) {
 		case STACK:
@@ -64,45 +67,45 @@ public class Action {
 		case STACK:
 			requiredConditions = new ArrayList<Predicate>();
 			requiredConditions.add(new Predicate(Predicate.Type.CLEAR, op2));
-			requiredConditions.add(new Predicate(Predicate.Type.HOLD,  op1));
+			requiredConditions.add(new Predicate(Predicate.Type.HOLD, botNumber,  op1));
 			invalidatingConditions = new ArrayList<Predicate>();
 			invalidatingConditions.add(new Predicate(Predicate.Type.CLEAR, op2));
-			invalidatingConditions.add(new Predicate(Predicate.Type.HOLD,  op1));
+			invalidatingConditions.add(new Predicate(Predicate.Type.HOLD, botNumber, op1));
 			posteriorConditions = new ArrayList<Predicate>();
 			posteriorConditions.add(new Predicate(Predicate.Type.ON, op1, op2));
-			posteriorConditions.add(new Predicate(Predicate.Type.ARMEMPTY));
+			posteriorConditions.add(new Predicate(Predicate.Type.ARMEMPTY, botNumber));
 			return;
 		case UNSTACK:
 			requiredConditions = new ArrayList<Predicate>();
 			requiredConditions.add(new Predicate(Predicate.Type.ON, op1, op2));
 			requiredConditions.add(new Predicate(Predicate.Type.CLEAR,  op1));
-			requiredConditions.add(new Predicate(Predicate.Type.ARMEMPTY));
+			requiredConditions.add(new Predicate(Predicate.Type.ARMEMPTY, botNumber));
 			invalidatingConditions = new ArrayList<Predicate>();
 			invalidatingConditions.add(new Predicate(Predicate.Type.ON, op1, op2));
-			invalidatingConditions.add(new Predicate(Predicate.Type.ARMEMPTY));
+			invalidatingConditions.add(new Predicate(Predicate.Type.ARMEMPTY, botNumber));
 			posteriorConditions = new ArrayList<Predicate>();
-			posteriorConditions.add(new Predicate(Predicate.Type.HOLD, op1));
+			posteriorConditions.add(new Predicate(Predicate.Type.HOLD, botNumber, op1));
 			posteriorConditions.add(new Predicate(Predicate.Type.CLEAR, op2));
 			return;
 		case PICKUP:
 			requiredConditions = new ArrayList<Predicate>();
 			requiredConditions.add(new Predicate(Predicate.Type.CLEAR, op1));
 			requiredConditions.add(new Predicate(Predicate.Type.ONTABLE,  op1));
-			requiredConditions.add(new Predicate(Predicate.Type.ARMEMPTY));
+			requiredConditions.add(new Predicate(Predicate.Type.ARMEMPTY, botNumber));
 			invalidatingConditions = new ArrayList<Predicate>();
 			invalidatingConditions.add(new Predicate(Predicate.Type.ONTABLE, op1));
-			invalidatingConditions.add(new Predicate(Predicate.Type.ARMEMPTY));
+			invalidatingConditions.add(new Predicate(Predicate.Type.ARMEMPTY, botNumber));
 			posteriorConditions = new ArrayList<Predicate>();
-			posteriorConditions.add(new Predicate(Predicate.Type.HOLD, op1));
+			posteriorConditions.add(new Predicate(Predicate.Type.HOLD, botNumber, op1));
 			return;
 		case PUTDOWN:
 			requiredConditions = new ArrayList<Predicate>();
-			requiredConditions.add(new Predicate(Predicate.Type.HOLD, op1));
+			requiredConditions.add(new Predicate(Predicate.Type.HOLD, botNumber, op1));
 			invalidatingConditions = new ArrayList<Predicate>();
-			invalidatingConditions.add(new Predicate(Predicate.Type.HOLD, op1));
+			invalidatingConditions.add(new Predicate(Predicate.Type.HOLD, botNumber, op1));
 			posteriorConditions = new ArrayList<Predicate>();
 			posteriorConditions.add(new Predicate(Predicate.Type.ONTABLE, op1));
-			posteriorConditions.add(new Predicate(Predicate.Type.ARMEMPTY));
+			posteriorConditions.add(new Predicate(Predicate.Type.ARMEMPTY, botNumber));
 			return;
 		}
 	}
@@ -110,6 +113,7 @@ public class Action {
 	private Type type;
 	private PredicateAttribute op1;
 	private PredicateAttribute op2;
+	private int botNumber;
 	private ArrayList<Predicate> requiredConditions;
 	private ArrayList<Predicate> invalidatingConditions;
 	private ArrayList<Predicate> posteriorConditions;
@@ -117,13 +121,13 @@ public class Action {
 	public boolean executeAction(World w) {
 		switch (type) {
 		case STACK:
-			return w.stack(op1.getBlock(), op2.getBlock());
+			return w.stack(op1.getBlock(), op2.getBlock(), botNumber);
 		case UNSTACK:
-			return w.unstack(op1.getBlock(), op2.getBlock());
+			return w.unstack(op1.getBlock(), op2.getBlock(), botNumber);
 		case PICKUP:
-			return w.pickup(op1.getBlock());
+			return w.pickup(op1.getBlock(), botNumber);
 		case PUTDOWN:
-			return w.putdown(op1.getBlock());
+			return w.putdown(op1.getBlock(), botNumber);
 		}
 		
 		return true;

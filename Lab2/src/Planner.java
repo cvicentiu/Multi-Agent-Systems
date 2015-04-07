@@ -39,7 +39,10 @@ public class Planner {
 		public boolean equals(Object other) {
 			return w.equals(((State)other).w);
 		}
-		
+		@Override
+		public String toString() {
+			return w.toString();
+		}
 		
 	}
 	/** Run A* to find the closest state that fulfills the predicate toFulfil.
@@ -49,23 +52,27 @@ public class Planner {
 	 * @param g
 	 * @return The resulting plan to achieve the Predicate.
 	 */
-	public static Plan findPlan(World currentStatus, List<Predicate> toFulfill, GoalEvaluator g) {
+	public static Plan findPlan(World currentStatus, List<Predicate> toFulfill, GoalEvaluator g, int botIdx) {
 		Plan result = new Plan();
 		
 		PriorityQueue<State> open = new PriorityQueue<>();
 		Set<State> closed = new HashSet<>();
 		State initial = new State(currentStatus, g.evaluateDistance(currentStatus), null, null);
 		open.add(initial);
+
+		int requiredFulfilled = Math.max(toFulfill.size() / 2, 3);
 		while (open.size() > 0) {
 			State current = open.poll();
 			boolean fulfilled = true;
+			int numFulfilled = 0;
 			for (int i = 0; i < toFulfill.size(); i++) {
 				if (!toFulfill.get(i).evaluatePredicate(current.w)) {
 					fulfilled = false;
-					break;
+				} else {
+					numFulfilled++;
 				}
 			}
-			if (fulfilled) {
+			if (fulfilled || numFulfilled >= requiredFulfilled) {
 				/* Reconstruct path. */
 				while (current.parent != null) {
 					result.add(current.parentAction);
@@ -75,12 +82,24 @@ public class Planner {
 				break;
 			}
 			
-			closed.add(current);
+			Iterator<State> iter = closed.iterator();
+			boolean foundInClosed = false;
+			while (iter.hasNext()) {
+				if (iter.next().equals(current)) {
+					foundInClosed = true;
+					break;
+				}
+			}
+			if (foundInClosed)
+				continue;
+			else
+				closed.add(current);
 			
-			List<State> neighbors = getNeighbors(current);
+			List<State> neighbors = getNeighbors(current, botIdx);
 			for (State neighbor : neighbors) {
 				if (closed.contains(neighbor))
 					continue;
+
 
 				boolean found = false;
 				Iterator<State> it = open.iterator();
@@ -103,9 +122,9 @@ public class Planner {
 		return result;
 	}
 	
-	public static List<State> getNeighbors(State current) {
+	public static List<State> getNeighbors(State current, int botIdx) {
 		List<State> result = new ArrayList<>();
-		List<Action> possibleActions = getPossibleActions(current.w);
+		List<Action> possibleActions = getPossibleActions(current.w, botIdx);
 		for (Action a : possibleActions) {
 			World newWorld = current.w.clone();
 			boolean execResult = a.executeAction(newWorld);
@@ -116,20 +135,20 @@ public class Planner {
 		return result;
 	}
 	
-	public static List<Action> getPossibleActions(World w) {
+	public static List<Action> getPossibleActions(World w, int robotIdx) {
 		List<Action> possibleActions = new LinkedList<Action>();
 		for (Block a : w.blocks) {
 			for (Action.Type t : Action.Type.values()) {
 				Action act;
 				try {
-					act = new Action(t, a);
+					act = new Action(t, robotIdx, a);
 					if (act.canExecuteAction(w))
 						possibleActions.add(act);
 				} catch (Exception e) {
 				}
 				for (Block b : w.blocks) {
 					try {
-						act = new Action(t, a, b);
+						act = new Action(t, robotIdx, a, b);
 						if (act.canExecuteAction(w))
 							possibleActions.add(act);
 					} catch (Exception e) {

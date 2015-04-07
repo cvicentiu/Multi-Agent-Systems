@@ -9,10 +9,12 @@ public class Agent {
 	World currentState;
 	World desiredState;
 	Plan currentPlan;
+	int botIdx;
 	
-	public Agent(World state) {
-		this.currentState = state.clone();
+	public Agent(World state, int idx) {
+		this.currentState = state;//state.clone();
 		this.currentPlan = null;
+		this.botIdx = idx;
 	}
 	
 	public void setDesiredState(World w) {
@@ -26,7 +28,19 @@ public class Agent {
 	public List<Predicate> getUnsatisfiedDesires() {
 		List<Predicate> unsatisfiedDesires = new LinkedList<>();
 		for (Predicate p : desires) {
-			if (!p.evaluatePredicate(currentState))
+			boolean remove = false;
+			ArrayList<Block> unavailableBlocks = new ArrayList<>();
+			for (int i = 0; i < currentState.inHand.length; i++) {
+				if (i != botIdx && currentState.inHand[i] != null)
+					unavailableBlocks.add(currentState.inHand[i]);
+			}
+			for (int i = 0; i < unavailableBlocks.size(); i++) {
+				for (int j = 0; j < p.getNumAttributes(); j++)
+					if (p.getAttribute(j).getBlock().equals(unavailableBlocks.get(i)))
+						remove = true;
+			}
+			
+			if (!p.evaluatePredicate(currentState) && !remove)
 				unsatisfiedDesires.add(p);
 		}
 		return unsatisfiedDesires;
@@ -40,51 +54,51 @@ public class Agent {
 		return true;
 	}
 	
-	public static List<Predicate> createDesiresBasedOnWorld(World w) {
+	public static List<Predicate> createDesiresBasedOnWorld(World w, int botIdx) {
 		List<Predicate> d = new LinkedList<>();
-		
-		for (Block b1 : w.blocks) {
-			PredicateAttribute p1 = new PredicateAttribute(b1);
-			for (Predicate.Type t : Predicate.Type.values()) {
-				Predicate pred;
-				try {
-					pred = new Predicate(t);
-					if (d.contains(pred))
-						continue;
-					if (pred.evaluatePredicate(w))
-						d.add(pred);
-					
-					continue;
-				} catch (Exception e) {
-				}
-
-				try {
-					pred = new Predicate(t, p1);
-					if (d.contains(pred))
-						continue;
-					if (pred.evaluatePredicate(w))
-						d.add(pred);
-					continue;
-				} catch (Exception e) {
-				}
-				for (Block b2 : w.blocks) {
-					PredicateAttribute p2 = new PredicateAttribute(b2);
+			for (Block b1 : w.blocks) {
+				PredicateAttribute p1 = new PredicateAttribute(b1);
+				for (Predicate.Type t : Predicate.Type.values()) {
+					Predicate pred;
 					try {
-						pred = new Predicate(t, p1, p2);
+						pred = new Predicate(t, botIdx);
 						if (d.contains(pred))
 							continue;
 						if (pred.evaluatePredicate(w))
 							d.add(pred);
+						
+						continue;
 					} catch (Exception e) {
+					}
+	
+					try {
+						pred = new Predicate(t, botIdx, p1);
+						if (d.contains(pred))
+							continue;
+						if (pred.evaluatePredicate(w))
+							d.add(pred);
+						continue;
+					} catch (Exception e) {
+					}
+					for (Block b2 : w.blocks) {
+						PredicateAttribute p2 = new PredicateAttribute(b2);
+						try {
+							pred = new Predicate(t, botIdx, p1, p2);
+							if (d.contains(pred))
+								continue;
+							if (pred.evaluatePredicate(w))
+								d.add(pred);
+						} catch (Exception e) {
+						}
 					}
 				}
 			}
-		}
+
 		return d;
 	}
 	
 	public void makePlan(List<Predicate> intentions) {
-		currentPlan = Planner.findPlan(currentState, intentions, new GoalEvaluator(desiredState));
+		currentPlan = Planner.findPlan(currentState, intentions, new GoalEvaluator(desiredState), botIdx);
 	}
 	
 	public boolean executePlan() {
