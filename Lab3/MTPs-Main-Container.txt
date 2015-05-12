@@ -1,1 +1,1 @@
-http://Arrakis:7778/acc
+http://vicentiu-desktop:7778/acc
